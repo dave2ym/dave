@@ -27,7 +27,7 @@ from
         select [Server], ProductName, Version, CreateDate, LastChangeDate, row_number() over(partition by [Server] order by [LastChangeDate] desc) as rank
         from [GSAAHSSRVWIN].[dbo].[QCheckSoftware]
         where [ProductName] like '%Oracle%'
-    ) softO on a.[Server] = softO.[Server] and softM.rank = 1
+    ) softO on a.[Server] = softO.[Server] and softO.rank = 1
     left join (
         select *, datediff(day, LogonTime, getdate()) as NoDays
         from
