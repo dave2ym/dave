@@ -4,8 +4,14 @@
 -- [DaveUsers] = [GSAAHSSRVWIN].[dbo].[QCheckUsers]
 
 select a.[Server], 
-    hasMsSql = case when softM.[hasMsSql] = 1 then 'true' else 'false' end,
-    hasOracle = case when softO.[hasOracle] = 1 then 'true' else 'false' end,
+    softM.ProductName    as [MS_ProductName],
+    softM.Version        as [MS_Version],
+    softM.CreateDate     as [MS_CreateDate],
+    softM.LastChangeDate as [MS_LastChangeDate],
+    softO.ProductName    as [ORA_ProductName],
+    softO.Version        as [ORA_Version],
+    softO.CreateDate     as [ORA_CreateDate],
+    softO.LastChangeDate as [ORA_LastChangeDate],
     b.[User], b.[Domain], b.[LogonTime], b.[CreateDate], coalesce(b.[NoDays],999) as DaysPassed,
     c.[LogonTime] as AdminLogonTime, coalesce(c.[NoDays],999) as DaysPassedAdmin
 from
@@ -13,15 +19,15 @@ from
         select distinct [Server] from [GSAAHSSRVWIN].[dbo].[ActivityLog]
     ) a
     left join (
-        select distinct [Server], 1 as [hasMsSql]
+        select [Server], ProductName, Version, CreateDate, LastChangeDate, row_number() over(partition by [Server] order by [LastChangeDate] desc) as rank
         from [GSAAHSSRVWIN].[dbo].[QCheckSoftware]
         where [ProductName] like '%Microsoft%SQL%'
-    ) softM on a.[Server] = softM.[Server]
+    ) softM on a.[Server] = softM.[Server] and softM.rank = 1
     left join (
-        select distinct [Server], 1 as [hasOracle]
+        select [Server], ProductName, Version, CreateDate, LastChangeDate, row_number() over(partition by [Server] order by [LastChangeDate] desc) as rank
         from [GSAAHSSRVWIN].[dbo].[QCheckSoftware]
         where [ProductName] like '%Oracle%'
-    ) softO on a.[Server] = softO.[Server]
+    ) softO on a.[Server] = softO.[Server] and softM.rank = 1
     left join (
         select *, datediff(day, LogonTime, getdate()) as NoDays
         from
