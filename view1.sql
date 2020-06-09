@@ -1,7 +1,7 @@
--- [dormant] = [GSAAHSSRVWIN].[dbo].[ActivityLog]
--- [software] = [GSAAHSSRVWIN].[dbo].[QCheckSoftware]
--- [AdminUsers] = [GSAAHSSRVWIN].[dbo].[AdminUsers]
--- [DaveUsers] = [GSAAHSSRVWIN].[dbo].[DaveUsers]
+-- [ dormant] = [GSAAHSSRVWIN].[dbo].[ActivityLog]
+-- [ software] = [GSAAHSSRVWIN].[dbo].[QCheckSoftware]
+-- [ AdminUsers] = [GSAAHSSRVWIN].[dbo].[AdminUsers]
+-- [ DaveUsers] = [GSAAHSSRVWIN].[dbo].[QCheckUsers]
 
 select a.[Server], 
     hasMsSql = case when soft.[hasMsSql] = 1 then 'true' else 'false' end,
@@ -9,7 +9,7 @@ select a.[Server],
     c.[LogonTime] as AdminLogonTime, coalesce(c.[NoDays],999) as DaysPassedAdmin
 from
     (
-        select distinct [Server] from dormant
+        select distinct [Server] from [dormant]
     ) a
     left join (
         select [Server],
@@ -23,7 +23,7 @@ from
         from
         (
             select aa.*, row_number() over(partition by Server order by LogonTime desc) as rank
-            from dormant aa
+            from [dormant] aa
                 left join [AdminUsers] bb on aa.[User] = bb.[Username]
             where bb.[Username] is null
         ) z where rank = 1
